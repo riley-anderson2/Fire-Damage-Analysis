@@ -1,6 +1,6 @@
 # Fire Damage Analysis: Modeling the Impact of Fire Station Proximity on Residential Fire Damage
 
-## Executive Summary
+## Summary
 
 This project presents a comprehensive statistical analysis examining the relationship between fire station proximity and residential fire damage using simple linear regression and model comparison techniques. The analysis of 15 residential fires in a major suburban region reveals a **statistically significant positive linear relationship**: for every mile increase in distance from the nearest fire station, expected fire damage increases by **$4,919** (R² = 0.923).
 
@@ -36,7 +36,7 @@ A fire insurance company commissioned this analysis to understand the relationsh
 
 ## Research Question & Motivation
 
-### Business Context
+### Context
 Fire insurance companies must accurately model risk to set appropriate premiums and identify high-risk zones. Understanding the impact of fire station proximity enables:
 - **Risk Assessment**: Accurate pricing based on fire station distance
 - **Urban Planning**: Data-driven recommendations for fire station placement
@@ -53,7 +53,6 @@ We hypothesize a **positive linear relationship** between distance from fire sta
 ### Sample
 - **Sample Size**: 15 recent residential fires in a large suburb
 - **Geographic Scope**: Single major suburban area
-- **Data Source**: Mendenhall textbook on statistical methods
 
 ### Variables
 
@@ -296,25 +295,5 @@ The Rmd file is fully commented and structured to allow:
 ## Author
 
 **Riley Anderson**  
-
----
-
-## Citation
-
-If using this analysis, please cite as:
-```
-Anderson, R. "Fire Damage Analysis: Statistical Modeling of Fire Station Proximity Effects." 
-Data Science Portfolio Project, 2024-2026.
-```
-
----
-
-## References
-
-- Mendenhall, W., et al. (2016). *Simple Linear Regression: A Practical Guide*
-- Wikipedia contributors. "Cook's Distance" - Used for influence diagnostics
-- Shapiro, S. S., & Wilk, M. B. (1965). An analysis of variance test for normality
-
----
 
 **Project Status**: ✓ Complete | **Last Updated**: April 30, 2026
