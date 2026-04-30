@@ -1,0 +1,415 @@
+---
+title: "Project 2"
+author: "Riley Anderson"
+date:  "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    csl: biomed-central.csl
+    df_print: paged
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 7
+    number_sections: yes
+    theme: journal
+    toc: yes
+    toc_float: yes
+  word_document:
+    toc: yes
+    toc_depth: 4
+  pdf_document:
+    df_print: kable
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 7
+    highlight: tango
+    toc: yes
+    toc_depth: 4
+bibliography: project.bib
+abstract: This project is about using R for real-world applications of SLR. We consider a data set of information about residential fires containing 15 fires' distances from the nearest fire station and their monetary damage done. We conduct simple linear regression to analyze the relationship bewteen these two variables and draw conclusions.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+![Notre Dame Fire](190415180215-notre-dame-ghitis.jpg "Notre Dame Fire"){ width=60% }
+
+
+A fire insurance company wants to examine the relationship between fire damage in major residential fires and the distance between where the fires take place and the nearest fire station. 15 recent fires of a large suburb of a major suburb were sampled, noting their damage in terms of monetary value and their distance from the nearest fire station. The data is courtesy of the MS textbook [ see @mendenhall2016simple]. 
+
+## What are the variables?
+
+```{r}
+fire <- read.csv("FIREDAM.csv")
+x <- fire$DISTANCE
+y <- fire$DAMAGE
+library(DT)
+
+datatable(
+  fire,filter = 'top', options = list(
+  pageLength = 5, autoWidth = TRUE, editable = TRUE, dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')),
+caption = htmltools::tags$caption(
+    style = 'caption-side: bottom; text-align: center;',
+    'Table 1: ', htmltools::em("15 fires along with their distances (miles) and damages (thousands of dollars)")
+  )
+) 
+```
+
+The two variables are properties of an individual fire and are as follows:
+
+Distance - the distance from the nearest fire station, recorded in miles
+
+Damage - the monetary damage done, recorded in thousands of dollars
+
+Both variables are quantitative and continuous in nature. We consider the distance in miles to be the independent variable and the damage in thousands of dollars to be the dependent variable.
+
+### How were the data collected?
+
+The data were provided by the MS textbook. The 15 fires were sampled from recent residential fires in a large suburb of a major city. Distance from the nearest fire station is given in terms of absolute distance, not by road. Damage is determined by monetary loss due to fire. 
+
+### What is the story behind the data?
+
+The story is that residential areas had fires, causing some varying amounts of fire damage. 
+
+![Residential Fire](suburban.jpg "Suburban Fire"){ width=60%}
+
+
+### Why was it gathered?
+
+The data were gathered to see if there exists a correlation between a fire's distance from nearest fire station and the damage the fire causes.
+
+### What is my interest in the data?
+
+My interest in the data comes in that I aim to help prevent residential damage from fires. Examining this relationship could help city planners find the optimal locations to construct fire stations in future and existing cities, preventing damage from fires.
+
+### What problems do I wish to solve?
+
+I wish to solve whether or not there is linear relationship between a fire's proximity to the nearest fire station and the damage caused by the fire for residential fires. Particularly, I believe these findings could help protect people and their property from fire damage in future and existing cities.
+
+### Preliminary plots
+
+```{r}
+plot(x, y, lwd = 2, bg = "blue", pch = 21, cex = 1.2, ylim = c(0, 1.1 * max(y)), xlim = c(0, 1.1 * max(x)), xlab = "distance (miles)", ylab = "damage (thousands of dollars)", main = "Damage vs Distance and Fitted Line", fig = "Graph 1")
+```
+
+
+```{r}
+library(s20x)
+trendscatter(DAMAGE~DISTANCE, data = fire, f = 0.5)
+```
+
+We see from basic visual analysis of the plots, that a straight-line relationship may be the best model of the data. As such, we will proceed with analysis using simple linear regression.
+
+# Theory needed to carry out SLR
+
+## Straight-line Hypothesis
+
+We will first hypothesize that a straight-line model will correctly relate the variables. Letting $y$ be the damage in thousands of dollars and $x$ be the distance from the nearest fire station in miles, we propose that 
+
+$$y = \beta_0 + \beta_1x + \epsilon$$
+
+NB: This model will require the following four assumptions about the error $\epsilon$, which we will for now take for granted and address later.
+
+$$E(\epsilon) = 0 \text{ ( the mean of the error is 0)}$$
+
+$$V(\epsilon) = \sigma^2 \text{ (the variance of the error takes a constant value)}$$
+
+$$\epsilon \sim N \text{ (the error is distributed normally)} $$
+
+$$\epsilon \text{ is independent}$$
+
+### Creating a linear model for our data
+
+```{r}
+x <- fire$DISTANCE
+y <- fire$DAMAGE
+fire.lm <- lm(y~x)
+summary(fire.lm)
+```
+
+Then the least-squares estimates for the parameters are $\hat{\beta_0} = 10.2779$ and $\hat{\beta_1} = 4.9193$. This gives us that our straight-line model is given by
+
+$$ \hat{y} = 4.919x + 10.278 $$
+
+Further, the 95% confidence intervals of the parameter estimates are given in the following test:
+
+```{r}
+ciReg(fire.lm, conf.level=0.95)
+```
+
+### First interpretation of model and answer to question
+
+$\hat{\beta_0} = 10.278$ would indicate that given a distance of $0$ miles from a fire station (perhaps the fire station itself), a damage of $10,278\$$ is expected. However, this is not valid as the range of independent variable, distance, does not contain $x = 0$. Still, over the range of the sampled distances - i.e. $(0.7, 6.1)$ - \hat{\beta_1} = $4.919$ suggests that per mile that the fire is further from the nearest fire station, damage increases by $4,919\$$. 
+
+### Plot of fitted line and points
+
+```{r}
+plot(x, y, lwd = 2, bg = "blue", pch = 21, cex = 1.2, ylim = c(0, 1.1 * max(y)), xlim = c(0, 1.1 * max(x)), xlab = "distance (miles)", ylab = "damage (thousands of dollars)", main = "Damage vs Distance and Fitted Line", fig = "Graph 1")
+abline(fire.lm, col = "red")
+```
+
+The graph shows a scatterplot of the data alongside the line of best fit generated from the method of least-squares. Again, it seems that the choice of a linear model may be good, but let's explore further. 
+
+# Veryifing Our Assumptions
+
+## RSS, MSS, TSS, and $R^2$
+
+### Residual sum of squares
+
+We want to plot the residuals on the graph of damage vs distance and use the calculation of the RSS (residual sum of squares) to later calculate $R^2$, the multiple R squared.
+
+```{r}
+yhat <- fitted(fire.lm)
+
+plot(y~x, main = "RSS", xlab ="Distance (mi)", ylab = "Damage (thousands of dollars)", pch = 21, bg = "blue", cex = 1.0, xlim = c(0, max(x) * 1.1), ylim = c(0, max(y) * 1.1))
+
+segments(x, y, x, yhat)
+
+abline(fire.lm)
+
+RSS <- sum((y - yhat)^2)
+RSS
+```
+
+### Model sum of squares
+
+Similarly, we will find and graph the model sum of squares, MSS.
+
+```{r}
+
+plot(y~x, main = "MSS", xlab ="Distance (mi)", ylab = "Damage (thousands of dollars)", pch = 21, bg = "blue", cex = 1.0, xlim = c(0, max(x) * 1.1), ylim = c(0, max(y) * 1.1))
+
+abline(h = mean(y))
+
+segments(x, mean(y), x, yhat, col = "red")
+
+abline(fire.lm)
+
+MSS <- sum((yhat - mean(y))^2)
+MSS
+```
+
+### Total sum of squares
+
+Now we will find and graph the total sum of squares, TSS
+
+```{r}
+plot(y~x, main = "TSS", xlab ="Distance (mi)", ylab = "Damage (thousands of dollars)", pch = 21, bg = "blue", cex = 1.0, xlim = c(0, max(x) * 1.1), ylim = c(0, max(y) * 1.1))
+
+abline(h = mean(y))
+segments(x, y, x, mean(y), col="green")
+
+TSS <- sum((y - mean(y))^2)
+TSS
+```
+
+### Analyzing RSS, MSS, and TSS
+
+From theory, $R^2 = \frac{MSS}{TSS}$. That is,
+
+```{r}
+mrsq <- MSS / TSS
+mrsq
+```
+Theory also tells us that the closer the value of multiple R squared is to $1$, the better the fit of the model to the data is. A value of $0.923$ indicates a model that explains the data very well. 
+
+## About the error $\epsilon$
+
+### Lowess smoother scatterplot 
+
+The following plot, shown in the introduction as well, gives region about the line of best fit where we are likely to find the true line of best fit. 
+
+```{r}
+trendscatter(DAMAGE~DISTANCE, data = fire, f = 0.5)
+```
+
+We find that even in the extremes of the interval for the line, it maintains a linear trend, further supporting our use of SLR.
+
+### Checking for signal in our residuals vs fitted values
+
+We want to check whether or not there is a trend in the residuals, which should be random about $y = 0$ with no trend - that is, no change in variation.
+
+```{r}
+res <- residuals(fire.lm)
+fit <- fitted(fire.lm)
+plot(res~fit, main = "Residuals vs Fitted", xlab ="Fitted", ylab = "Residuals", pch = 21, bg = "blue", cex = 1.0, xlim = c(0, max(fit) * 1.1), ylim = c(min(res) * 1.1, max(res) * 1.1))
+abline(a = 0, b = 0, col = "red")
+```
+
+Visually, there does not appear to be a trend in the data, however, we can explore further by creating another trendscatter.
+
+```{r}
+trendscatter(res~fit, xlab = "Fitted values", ylab = "Residuals", main = "Residuals vs Fitted")
+abline(a = 0, b = 0, col = "green")
+```
+
+We see that the spread of the red bands stays around the same throughout the plot, indicating that we do have constant variance. However, ideally we would see the blue curve, the trend in the points, stay close about the green line. The slight U-shape may indicate non-linearity. Still, the deviations are small, so nothing suggests that the SLR model is horribly wrong. Still, we want to test further.
+
+### Checking normality
+
+The following check is used to test our null hypothesis, with the alternate also given:
+
+$$ H_0:\quad \epsilon_i\overset{\text{iid}}{\sim} N(0,\sigma^2)\,$$
+$$ H_1:\quad \epsilon_i\not\sim N(0,\sigma^2)\, $$
+
+```{r}
+normcheck(fire.lm, shapiro.wilk = TRUE)
+```
+
+We find that, as desired, $W$ is close to $1$ and $P\text{-value} > 0.05$ so we fail to reject the null hypothesis and conclude that $\epsilon_i\overset{\text{iid}}{\sim} N(0,\sigma^2)$.
+
+### Are errors independent?
+
+The last assumption for SLR to work is that the errors are independent between trials. For our data, we are considering a single suburb of a large city. As such, it's reasonable to wonder what might cause errors to be dependent. 
+
+Perhaps the 15 selected fires were all recorded around the same time. Then, if a drought or some other extreme weather event was happening, then the errors could be pushed in the same direction. Further, as we're only considering one suburb, construction of certain residential areas that are further away from fire stations could be the similar. This could create error in damage that's caused by the quality or manner of the construction of the further-away buildings, not the distance of the fire station. 
+
+Not much description is given in terms of how the data was collected, but it can be reasonably inferred that the 15 fires were chosen across the entirety of the large suburb across a period of time, with no preference for fires to be near each other in location and time. As such, we may assume independence of the errors from trial to trial. The evidence to suggest otherwise is not strong enough to conclude dependence of errors.
+
+# Quadratic Model Suggestion
+
+## Reason for suggestion
+
+In the trendscatter of the residuals vs the fitted values, we saw that there was a slight U-shape to the graph. As such, it's reasonable to conclude that a quadratic model may better explain the variation in data. That is, we assume:
+
+$$ y = \beta_0 + \beta_1 x + \beta_2 x^2 + \epsilon$$
+
+## Fitting the quadratic
+
+Conducting analysis of a quadratic model in R
+
+```{r}
+quad.lm <- lm(y~x + I(x^2))
+summary(quad.lm)
+
+plot(y~x, main = "Damage vs Distance Quadratic Model", ylab = "Damage (thousands of dollars)", xlab = "Distance")
+
+myplot <- function(x){quad.lm$coef[1] + quad.lm$coef[2]*x + quad.lm$coef[3]*x^2}
+curve(myplot, lwd = 2, add = TRUE)
+```
+
+Visually, the slight curve to the model seems to make the fitted curve closer to the data points. That is, we will expect to see a larger multiple r squared value. 
+
+Using the given coefficients, we find that this model explains $y$ by 
+
+$$\hat{y} = \hat{\beta_0} + \hat{\beta_1}x + \hat{\beta_2}x^2$$ 
+
+$$ \hat{y} = 13.3495 + 2.64x + 0.3376x^2 $$
+
+The interpretations of $\hat{\beta_0}$ and $\hat{\beta_1}$ are the same as before. As for$\hat{\beta_2} = 0.3376$, the positive value of the degree 2 term suggests that as the distance from the nearest fire station gets further, the damage increases. This makes sense, as fires tend to start off small and grow exponentially with time when left untreated.
+
+## Confidence intervals of coefficients
+
+```{r}
+ciReg(quad.lm, conf.level = 0.95)
+```
+Importantly, notice that $0 \in (-0.17419, 0.84933)$. In actuality, we want to check $H_0 : \quad \beta_2 = 0$ against $H_1 : \beta_2 \neq 0$. 
+
+Then, we fail to reject $H_0$ at $\alpha = 0.05$ and conclude that there is no significant degree 2 relation between the variables.
+
+## Checking for signal in residuals vs fitted values
+
+```{r}
+quad.res <- residuals(quad.lm)
+quad.fit <- fitted(quad.lm)
+
+trendscatter(quad.res~quad.fit, xlab = "Fitted values", ylab = "Residuals", main = "Residuals vs Fitted")
+abline(a = 0, b = 0, col = "green")
+```
+
+We see that the trend (blue curve) more closely hugs the green line ($ y = 0)$ without a discernible trend, indicating that this model may better explain the data (as expected as the degree of the polynomial model increases) Further, the distance between the red bands again stays the same throughout.
+
+## Checking normality
+
+Again, we check 
+$$ H_0:\quad \epsilon_i\overset{\text{iid}}{\sim} N(0,\sigma^2)\,$$
+
+$$ H_1:\quad \epsilon_i\not\sim N(0,\sigma^2)\, $$
+
+```{r}
+normcheck(quad.lm, shapiro.wilk = TRUE)
+```
+
+We once again find a large test statistic $W$ value and a $P\text{-value} > 0.05$, so we fail to reject the null hypothesis and we say that $\epsilon_i\overset{\text{iid}}{\sim} N(0,\sigma^2)$.
+
+As before, we also conclude that the errors are independent.
+
+## Multiple r squared for quadratic model
+
+```{r}
+summary(quad.lm)$r.squared
+summary(quad.lm)$adj.r.squared
+```
+Recall the values of the multiple r squared for the degree 1 model: 
+
+```{r}
+summary(fire.lm)$r.squared
+summary(fire.lm)$adj.r.squared
+```
+
+We find a relatively insignificant increase in the $R^2$ and $R_{\text{adj}}^2$ values for the quadratic model. The difference in $R_{\text{adj}}^2$ is $0.9238351 - 0.9175919 = 0.0062432$, which may suggest warranted added complexity.
+
+## Model comparison conclusion
+
+As both models have high multiple r squared values with only a slightly larger value for the quadratic model and each having correct assumptions about the error, both models could be used to describe the data.
+
+However, recall that we failed to reject the null hypothesis $\beta_2 = 0$. This, paired with the relatively insignificant increase in multiple r squared for the quadratic model, leads me to conclude that we should maintain the linear model. 
+
+# Analysis of the Data
+
+## Predicting damage based on our model
+
+One use of the model is to predict the damage done by a residential fire given that it is a certain distance away from a fire station. For example, what would the expected damage be when a fire occurs $4$ miles from a nearest fire station? What about $2$ and $5.5$?
+
+
+
+```{r}
+b0hat <- summary(fire.lm)$coef[1]
+b1hat <- summary(fire.lm)$coef[2]
+linear.model <- function(x)
+{
+  b0hat + b1hat * x
+}
+
+linear.model(2)
+linear.model(4)
+linear.model(5.5)
+```
+
+## With Cook's Distance
+
+We want to check whether outliers are significantly skewing the data, affecting the accuracy of our regression. Particularly, we may use Cook's distance to check how much any individual data point affects our regression. 
+```{r}
+cooks20x(fire.lm)
+```
+
+For smaller data sets like ours ($n = 15$ fires), we consider if any point has a Cook's distance, $D_i > \frac{4}{n}$ to be influential [ see @wikipedia2025a]. In our case, $\frac{4}{15} = 0.2667$. Only observation $13$ has a Cook's distance greater than $0.2667$, so we will consider what the regression looks like with the point removed.
+
+```{r}
+fire2.lm <- lm(DAMAGE~DISTANCE, data=fire[-13,])
+
+summary(fire2.lm)
+```
+
+$R^2$ is actually lower by removing this point, so we maintain the original model which includes observation $13$.
+
+# Conclusion
+
+## Is there a relationship?
+
+We find that residential fires in large suburbs of major cities have statistically significant positive linear relationships between monetarily measured damage done and distance from nearest fire station. In our analysis, we found that the correlation is best modeled by the following, where $\hat{y}$ represents the average damage done for a fire of $x$ distance from a fire station:
+
+$$ \hat{y} = 4.919x + 10.278 $$
+
+NB: The valid range for this model is restricted by our sample's range. That is, our model is valid $ \forall \quad x \in (0.7, 6.1)$. 
+
+## How could the model/experiment be improved?
+
+There are several ways in which I believe the model and experiment could be improved. Firstly, increasing the sample size of the data set beyond 15 fires would improve the reliability of parameter estimates and reduce the influence of outliers. Also, directly measuring the time taken for firefighters to arrive, rather than inferring it from distance, could better explain the damage. I would also suggest using road distance instead of straight-line distance, as it would reflect real-world fire truck travel routes more accurately, potentially improving our model’s predictive capability. Lastly, replicating the study across multiple suburbs and cities would test the how well the findings of this study could apply to other areas, and collecting longitudinal data over several years could control for time-based trends, such as droughts. 
+
+# References
+
